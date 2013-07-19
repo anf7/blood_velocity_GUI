@@ -1,0 +1,21 @@
+function ssrgb = setbackgroundtoblack(img,maxval)
+
+
+jmap = jet(325);
+jet256 = jmap(56:311,:);
+
+
+sscrop = img;
+sscrop(sscrop > maxval) = maxval;
+sscrop = 255*sscrop/max(sscrop(:));
+ssrgb = ind2rgb(uint8(sscrop),jet256);
+
+for m = 1:size(ssrgb,1)
+    for n = 1:size(ssrgb,2)
+        if ssimg(m,n) == 0
+            ssrgb(m,n,:) = zeros(1,1,3); 
+        end
+    end
+end
+
+

@@ -1,0 +1,126 @@
+function [vessellength, vld, nobp] = structural_validation
+
+
+
+LUTstruct.perim_lut = makelut('sum(x(:)) ~= 0 && sum(x(:)) < 9 && x(2,2) == 1 && (sum(x(2,:))+sum(x(:,2))) < 6',3);
+LUTstruct.fill_lut = makelut('sum(x(:)) > 5 && x(2,2) == 0',3);
+LUTstruct.subtract_lut = makelut('(x(1,2) + x(2,1) + x(2,3) + x(3,2)) <= 1 && x(2,2) == 1',3);
+
+str1 = '(abs(x(1,1)-x(1,2))+abs(x(1,2)-x(1,3))+abs(x(1,3)-x(2,3))+';
+str2 = 'abs(x(2,3)-x(3,3))+abs(x(3,3)-x(3,2))+abs(x(3,2)-x(3,1))+';
+str3 = 'abs(x(3,1)-x(2,1))+abs(x(2,1)-x(1,1))) >= 4 ';
+discont_border_str = strcat(str1,str2,str3);
+
+str4 = '&& x(2,2) == 1';
+str5 = strcat(str1,str2,str3,str4);
+LUTstruct.pinch_lut = makelut(str5,3);
+
+str1 = 'x(2,2) == 0 && ';
+str2 = '&& (abs((sum(x(1,:)) - sum(x(3,:)))/sum(x(:))) <= 0.5) && ';
+str3 = '(abs((sum(x(:,1)) - sum(x(:,3)))/sum(x(:))) <= 0.5) ';
+str4 = '&& ~((sum(sum(x,1) == [2 1 1]) == 3) || (sum(sum(x,1) == [1 1 2]) == 3) || ';
+str5 = '(sum(sum(x,2) == [2; 1; 1]) == 3) || (sum(sum(x,2) == [1; 1; 2]) == 3)) ';
+str6 = strcat(str1,discont_border_str,str2,str3,str4,str5);
+str7 =  '&& ~((sum(x(1,:)) == 3 && sum(x(2,:)) ~= 0) ||';
+str8 = '(sum(x(3,:)) == 3 && sum(x(2,:)) ~= 0) ||';
+str9 = '(sum(x(:,1)) == 3 && sum(x(:,2)) ~= 0) ||';
+str10 = '(sum(x(:,3)) == 3 && sum(x(:,2)) ~= 0))';
+str11 = strcat(str6, str7, str8, str9 , str10);
+LUTstruct.reconnect_lut = makelut(str11,3);
+
+str1 = 'sum(sum(x(1:2,1:2))) == 4 || sum(sum(x(2:3,1:2))) == 4 || ';
+str2 = 'sum(sum(x(1:2,2:3))) == 4 || sum(sum(x(2:3,2:3))) == 4';
+str3 = strcat(str1,str2);
+LUTstruct.square_lut = makelut(str3, 3);
+
+LUTstruct.end_lut = makelut('sum(x(:)) == 2 && x(2,2) == 1', 3);
+
+str1 = '(sum(x(:)) == 5 || sum(x(:)) == 6) && ((sum(sum(x(2,:))) == 3 && (sum(sum(x(:,1))) == 3 ';
+str2 = '|| sum(sum(x(:,3))) == 3)) || (sum(sum(x(:,2))) == 3 && ';
+str3 = '(sum(sum(x(1,:))) == 3 || sum(sum(x(3,:))) == 3)))';
+str4 = strcat(str1,str2,str3);
+
+LUTstruct.artifact_lut = makelut(str4,3);
+
+LUTstruct.boxlut = makelut('x(2,2) == 0 && sum(x(:)) >= 7',3);
+LUTstruct.connectlut = makelut('x(2,2) == 0 && (x(1,2)+x(2,1)+x(3,2)+x(2,3)) == 2',3);
+LUTstruct.eliminatelut = makelut('sum(x(:)) ~= 0',3);
+LUTstruct.cornerslut = makelut('sum(x(:)) == 1 && (x(1,1)+x(3,1)+x(1,3)+x(3,3)) == 1',3);
+LUTstruct.expandpts_lut = makelut('sum(x(:)) ~= 0',3);   
+
+LUTstruct.border = makelut('x(2,2) == 0 && sum(x(:)) ~= 0',3);
+
+load rings.mat;
+
+for j = 1:4
+    
+    if j == 1
+        a = imread('C:\Users\anf7\Desktop\Dissertation Documents\Structural Validation\microbeam_day3_mouse3_lines.tif');
+        load(
+        b = imread('C:\Users\anf7\Desktop\Structural Validation\microbeam_day3_mouse3.tif');
+    elseif j == 2
+        a = imread('C:\Users\anf7\Desktop\Dissertation Documents\Structural Validation\mock_day2_mouse4_lines.tif');
+        b = imread('C:\Users\anf7\Desktop\Structural Validation\mock_day2_mouse4.tif');
+    elseif j == 3
+        a = imread('C:\Users\anf7\Desktop\Dissertation Documents\Structural Validation\mock_day5_mouse5_lines.tif');
+        b = imread('C:\Users\anf7\Desktop\Structural Validation\mock_day5_mouse5.tif');
+    else
+        a = imread('C:\Users\anf7\Desktop\Dissertation Documents\Structural Validation\widefield_day4_mouse2_lines.tif');
+        b = imread('C:\Users\anf7\Desktop\Structural Validation\widefield_day4_mouse2.tif');
+    end
+    
+    b = double(b);
+    [r, c] = size(b); 
+    roiimg_b = (b > 0);
+    mask_b = create_mask(b,roiimg_b,0);
+    
+    [~,parameters_out,~,~,removebp_img_mask] = parameters(LUTstruct,mask_b,b,r,c,roiimg_b,rings,0);
+
+    vld_b = parameters_out.vascularlengthdensity_2p5x;
+    vessellength_b = parameters_out.totalvessellength_2p5x;
+    
+
+    blue = zeros(1,1,3);
+    blue(1,1,1) = 60;
+    blue(1,1,2) = 90;
+    blue(1,1,3) = 132;
+    a = double(a);
+    am = zeros(size(a,1),size(a,2));
+    roiimg = ones(size(am));
+    for m = 1:size(a,1)
+        for n = 1:size(a,2)
+            if isequal(a(m,n,:),zeros(1,1,3))
+                am(m,n) = 1;
+            elseif isequal(a(m,n,:),blue)
+                roiimg(m,n) = 0;
+            end
+        end
+    end
+    
+    line_img = thin2line(am);
+
+    fix_img = applylut(line_img,LUTstruct.boxlut);
+    line_img = line_img & ~(applylut(fix_img,LUTstruct.eliminatelut));
+    fix_img = fix_img | applylut(fix_img,LUTstruct.connectlut);
+    fix_img = fix_img | applylut(fix_img,LUTstruct.cornerslut);
+    line_img = line_img | fix_img;
+   
+    
+    [~, removebp_img, ~] = findbranchpts(line_img);
+    
+    nobp(j).hand = removebp_img;
+    nobp(j).code = removebp_img_mask;
+
+
+    [~, lengthval] = findlength(removebp_img);
+    
+    totalvessellength_2p5x = lengthval/250;
+    vasclengthdensity = lengthval/sum(roiimg(:));
+    
+    vessellength(j).hand = totalvessellength_2p5x;
+    vessellength(j).code = vessellength_b;
+    
+    vld(j).hand = vasclengthdensity*250;
+    vld(j).code = vld_b;
+    
+end
