@@ -906,10 +906,11 @@ function mode_Callback(hObject, eventdata, handles)
 % --------------------------------------------------------------------
 function analysis_mode_Callback(hObject, eventdata, handles)
 
-set(hObject,'Checked','on')
 set(handles.process_mode,'Checked','off')
-handles.mode = 'analysis';
-
+if strcmp(get(hObject,'Checked'),'on')
+    set(handles.process_mode,'Checked','off')
+    handles.mode = 'analysis';
+end
 
 guidata(hObject, handles); 
 
@@ -921,11 +922,11 @@ guidata(hObject, handles);
 % --------------------------------------------------------------------
 function process_mode_Callback(hObject, eventdata, handles)
 
-set(hObject,'Checked','on')
-set(handles.analysis_mode,'Checked','off')
-handles.mode = 'process';
+if strcmp(get(hObject,'Checked'),'on')
+    set(handles.analysis_mode,'Checked','off')
+    handles.mode = 'process';
+end
 
-    
 guidata(hObject, handles); 
 
 % hObject    handle to process_mode (see GCBO)

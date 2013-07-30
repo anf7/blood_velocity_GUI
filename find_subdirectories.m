@@ -87,25 +87,39 @@ for n = 1:length(dirlist)
     end
 end
 
-if length(filetree_p) > 1   
-    [tempstr, i] = sort({filetree_p.path});
-    for n = 1:length(tempstr)
-        if ~isequal(tempstr{n}(end),divider)
-            tempstr{n}(end+1) = divider;
-        end
-        filetree(n).path = tempstr(n);
-    end 
-    for n = 1:length(filetree)
-        filetree(n).tiffs = filetree_p(i(n)).tiffs;
-        filetree(n).level = filetree_p(i(n)).level;
+
+[tempstr, i] = sort({filetree_p.path});
+for n = 1:length(tempstr)
+    if ~isequal(tempstr{n}(end),divider)
+        tempstr{n}(end+1) = divider;
     end
-else
-    for n = 1:length(filetree_p)
-        filetree(n).path = filetree_p(n).path;
-        filetree(n).tiffs = filetree_p(n).tiffs;
-        filetree(n).level = filetree_p(n).level;
-    end
+    filetree(n).path = tempstr(n);
+end 
+for n = 1:length(filetree)
+    filetree(n).tiffs = filetree_p(i(n)).tiffs;
+    filetree(n).level = filetree_p(i(n)).level;
 end
+
+
+% if length(filetree_p) > 1   
+%     [tempstr, i] = sort({filetree_p.path});
+%     for n = 1:length(tempstr)
+%         if ~isequal(tempstr{n}(end),divider)
+%             tempstr{n}(end+1) = divider;
+%         end
+%         filetree(n).path = tempstr(n);
+%     end 
+%     for n = 1:length(filetree)
+%         filetree(n).tiffs = filetree_p(i(n)).tiffs;
+%         filetree(n).level = filetree_p(i(n)).level;
+%     end
+% else
+%     for n = 1:length(filetree_p)
+%         filetree(n).path = filetree_p(n).path;
+%         filetree(n).tiffs = filetree_p(n).tiffs;
+%         filetree(n).level = filetree_p(n).level;
+%     end
+% end
 
 
 
