@@ -1,4 +1,4 @@
-function submatrix = flow_analysis(imstack,meanpixval,startstop,downsampleimg,executemask,mask_exclusion)
+function submatrix = flow_analysis(imstack,meanpixval,startstop,downsampleimg,executemask)
 
 [z, r, c] = size(imstack);
 
@@ -41,6 +41,15 @@ for m = 1:z
 end
 
 clear meanpixval
+      
+
+stdzeroedstack = zeros(r,c);
+for n = 1:c
+    for m = 1:r
+        stdzeroedstack(m,n) = std(zeroedstack(:,m,n));
+    end
+end
+
 
 reversezeroedstack = zeros(NFFT,r,c);
 for m = 1:z
@@ -75,15 +84,16 @@ for n = startc:stopc
         rindex = m;
         cindex = n;
         iimg = int8(127*ones(r,c));
-        if mask_exclusion
-            img = img - (1 - uint8(executemask));
-        end   
+        if usemaskexclusion
+            img = img - uint8(executemask);
+            
         
         iimg(m,n) = 0;
         smask = iimg == 0;
         zeroedFTvec = zeroedFT(:,m,n);
+        stdF = stdzeroedstack(m,n);
         
-        [zsmask,zring,iimg] = dilatefill_mat_zerotest(iimg,smask,reversezeroedFT,zeroedFTvec,NFFT,rindex,cindex,0,ignore_areas_larger_than);
+        [zsmask,zring,iimg] = dilatefill_mat_zerotest(iimg,smask,reversezeroedFT,zeroedFTvec,stdzeroedstack,stdF,NFFT,rindex,cindex,0,ignore_areas_larger_than);
         if isempty(zsmask)
             continue
         end
@@ -105,7 +115,7 @@ for n = startc:stopc
         while dilatedone == 0
             if stepnum ~= 0
                 oldsumsmask = sumsmask;
-                [smask,ring,iimg] = dilatefill_mat(iimg,smask,reversezeroedFT,zeroedFTvec,NFFT,rindex,cindex,stepnum);
+                [smask,ring,iimg] = dilatefill_mat(iimg,smask,reversezeroedFT,zeroedFTvec,stdzeroedstack,stdF,NFFT,rindex,cindex,stepnum);
                 sumsmask = sum(smask(:));
             else
                 smask = zsmask;
@@ -168,7 +178,7 @@ for n = startc:stopc
                     oldsumsmask = sumsmask;
                 end
 
-                [smask,ring,iimg] = dilatefill_mat(iimg,smask,reversezeroedFT,zeroedFTvec,NFFT,rindex,cindex,stepnum);
+                [smask,ring,iimg] = dilatefill_mat(iimg,smask,reversezeroedFT,zeroedFTvec,stdzeroedstack,stdF,NFFT,rindex,cindex,stepnum);
                 sumsmask = sum(smask(:));
                 
                 if sumsmask > ignore_areas_larger_than || sumsmask < ignore_continuous_areas_smaller_than ||...
@@ -252,7 +262,7 @@ for n = startc:stopc
                 if stepnum ~= 0
                     if ~isequal(smask,false(r,c))
                         [rindex,cindex] = find(smask);
-                        [smask, ~, iimg] = dilatefill_mat(iimg,smask,reversezeroedFT,zeroedFTvec,NFFT,rindex,cindex,stepnum);
+                        [smask, ~, iimg] = dilatefill_mat(iimg,smask,reversezeroedFT,zeroedFTvec,stdzeroedstack,stdF,NFFT,rindex,cindex,stepnum);
                         sumsmask = sum(smask(:));                        
                         if (((sumsmask >= ignore_discontinous_areas_smaller_than && sumsmask < ignore_areas_larger_than) ||...
                                 (stepnum == 1 || stepnum == -1)) && sumsmask < sum(priorsmask(:))*ignore_area_changes_greater_than &&...
@@ -332,7 +342,7 @@ for n = startc:stopc
                 
                 priorsmask = smask;
 
-                iimg = process_iimg_region(iimg,cc1,cc2,rr1,rr2,reversezeroedFT,zeroedFTvec,NFFT);
+                iimg = process_iimg_region(iimg,cc1,cc2,rr1,rr2,reversezeroedFT,zeroedFTvec,stdzeroedstack,stdF,NFFT);
 
                 stepnum = stepnum + stepnumdir;
                 if (ustepnum - dnstepnum) > steplimit %(stepnum == steplimit) || (stepnum == -1*steplimit)

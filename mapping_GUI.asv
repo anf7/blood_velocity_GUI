@@ -22,7 +22,7 @@ function varargout = mapping_GUI(varargin)
 
 % Edit the above text to modify the response to help mapping_GUI
 
-% Last Modified by GUIDE v2.5 29-Jul-2013 23:18:35
+% Last Modified by GUIDE v2.5 30-Jul-2013 21:14:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -600,7 +600,7 @@ indexvect = get(handles.file_list,'Value');
 indexstr = cell(0);
 count = 1;
 for m = 1:length(indexvect)
-    if strcmp(handles.indexcell{indexvect(m)}(end-3:end),'.tif')
+    if length(handles.indexcell{indexvect(m)}) > 4 && strcmp(handles.indexcell{indexvect(m)}(end-3:end),'.tif')
         indexstr{m} = handles.indexcell{indexvect(m)};   
         count = count + 1;
     else
@@ -628,7 +628,7 @@ if count ~= 1
     [savefilename, savepathname] = uiputfile('*.mat', 'Save data as...');
     for n = 1:length(indexstr)
         instruct.filename = indexstr{n};
-        [movement_matrix, togetherimg_p] = process_data(instruct);z
+        [movement_matrix, togetherimg_p] = process_data(instruct);
         
         
         %%..............
@@ -906,11 +906,10 @@ function mode_Callback(hObject, eventdata, handles)
 % --------------------------------------------------------------------
 function analysis_mode_Callback(hObject, eventdata, handles)
 
+set(hObject,'Checked','on')
 set(handles.process_mode,'Checked','off')
-if strcmp(get(hObject,'Checked'),'on')
-    set(handles.process_mode,'Checked','off')
-    handles.mode = 'analysis';
-end
+handles.mode = 'analysis';
+
 
 guidata(hObject, handles); 
 
@@ -922,13 +921,24 @@ guidata(hObject, handles);
 % --------------------------------------------------------------------
 function process_mode_Callback(hObject, eventdata, handles)
 
-if strcmp(get(hObject,'Checked'),'on')
-    set(handles.analysis_mode,'Checked','off')
-    handles.mode = 'process';
-end
+set(hObject,'Checked','on')
+set(handles.analysis_mode,'Checked','off')
+handles.mode = 'process';
 
+    
 guidata(hObject, handles); 
 
 % hObject    handle to process_mode (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in premask.
+function premask_Callback(hObject, eventdata, handles)
+% hObject    handle to premask (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+get(hObject,'Value')
+
+% Hint: get(hObject,'Value') returns toggle state of premask

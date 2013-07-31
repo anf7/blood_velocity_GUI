@@ -14,7 +14,6 @@ function [movement_matrix, togetherimg] = process_data(instruct)
 % instruct.first 
 % instruct.last 
 % instruct.premask
-mask_exclusion = false;
 
 % (pix/frame) * Scale Factor = (mm/sec)
 % Scale Factor = (frame/sec) * (mm/pix)
@@ -104,7 +103,6 @@ if instruct.downsample
     [z,r,c] = size(dsimgstack);
     imstack = dsimgstack;
     clear dsimstack
-    scale_factor = 2*scale_factor;
 end   
 
 %% Correct for fluctuations in overall image intensity 
@@ -195,12 +193,13 @@ for n = 1:multipartfactor
 
         subimg = imstack(:,r1:r2,c1:c2);
         submeanpixval = meanpixval(r1:r2,c1:c2);
-        submask = mask_img(r1:r2,c1:c2);     
-             
-        submatrix = flow_analysis(subimg,submeanpixval,startstop,instruct.downsample,submask,mask_exclusion);
-        %           ^^^^^^^^^^^^^
+        submask = mask_img(r1:r2,c1:c2);
+
         % This is the function that does the mapping operations
-        
+        %           |||||||||||||
+
+        submatrix = flow_analysis(subimg,submeanpixval,startstop,downsampleimg,submask);
+
         movement_matrix(r1w:r2w,c1w:c2w,:) = movement_matrix(r1w:r2w,c1w:c2w,:) + submatrix;
 
     end

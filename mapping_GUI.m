@@ -22,7 +22,7 @@ function varargout = mapping_GUI(varargin)
 
 % Edit the above text to modify the response to help mapping_GUI
 
-% Last Modified by GUIDE v2.5 29-Jul-2013 23:18:35
+% Last Modified by GUIDE v2.5 30-Jul-2013 21:14:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -55,6 +55,7 @@ function mapping_GUI_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.homedir = pwd;
 handles.filetree = [];
 handles.downsample = false;
+handles.premask = false;
 handles.registervid = false;
 handles.dynamic_processing = false;
 handles.subpixel = false;
@@ -600,7 +601,7 @@ indexvect = get(handles.file_list,'Value');
 indexstr = cell(0);
 count = 1;
 for m = 1:length(indexvect)
-    if strcmp(handles.indexcell{indexvect(m)}(end-3:end),'.tif')
+    if length(handles.indexcell{indexvect(m)}) > 4 && strcmp(handles.indexcell{indexvect(m)}(end-3:end),'.tif')
         indexstr{m} = handles.indexcell{indexvect(m)};   
         count = count + 1;
     else
@@ -624,11 +625,12 @@ if count ~= 1
     instruct.seqspacing = handles.seqspacing;
     instruct.first = handles.first;
     instruct.last = handles.last;
+    instruct.premask = handles.premask;
     
     [savefilename, savepathname] = uiputfile('*.mat', 'Save data as...');
     for n = 1:length(indexstr)
         instruct.filename = indexstr{n};
-        [movement_matrix, togetherimg_p] = process_data(instruct);z
+        [movement_matrix, togetherimg_p] = process_data(instruct);
         
         
         %%..............
@@ -931,3 +933,20 @@ guidata(hObject, handles);
 % hObject    handle to process_mode (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in premask.
+function premask_Callback(hObject, eventdata, handles)
+% hObject    handle to premask (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if get(hObject,'Value')
+    handles.premask = true;
+else
+    handles.premask = false;
+end
+
+guidata(hObject, handles);
+
+% Hint: get(hObject,'Value') returns toggle state of premask
